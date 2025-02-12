@@ -1,5 +1,6 @@
 #include "RootReader.h"
 #include <stdexcept>
+#include "Event.h"
 
 
 RootReader::RootReader(const char* filename, const char* treename) :
@@ -69,6 +70,19 @@ void RootReader::get_entry(Long64_t entry_idx)
     }
     
     m_tree->GetEntry(entry_idx);
+}
+
+Event RootReader::get_event(Long64_t entry_idx)
+{
+    if (entry_idx >= m_nEntries)
+    {
+        std::cerr << "ERROR: Index " << entry_idx << " is out of bound for tree of size " << m_nEntries << std::endl;
+        throw std::invalid_argument("ERROR: Index out of bounds");
+    }
+    
+    m_tree->GetEntry(entry_idx);
+    
+    return Event(*this);
 }
 
 

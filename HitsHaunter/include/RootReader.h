@@ -8,7 +8,10 @@
 #include <vector>
 
 #include "RootWriter.h"
+#include "StripModule.h"
+// #include "Event.h"
 
+class Event;
 
 class RootReader {
 
@@ -17,8 +20,10 @@ class RootReader {
         ~RootReader();
         
         Long64_t get_nentries() const;
+        Event get_event(Long64_t entry_idx);
 
         friend class RootWriter;
+        friend class Event;
 
     private:
         void get_entry(Long64_t entry_idx);
