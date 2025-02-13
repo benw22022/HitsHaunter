@@ -71,7 +71,7 @@ int main(int argc, char* argv[]) {
         hit.z -= event.vertex_z;
     }
 
-    SCTModule module(0., 0., 0., 78, M_PI/2, false);
+    SCTModule module(0., 0., 0., 78, M_PI/2, true);
     std::cout << module << std::endl;
 
     module.drawHitsOnModule(event.hits);

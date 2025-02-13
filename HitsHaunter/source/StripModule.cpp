@@ -22,8 +22,8 @@ void SCTModule::initStripEdges()
     }
 }
 
-bool SCTModule::checkHitModuleOverlap(const Hit& hit) const
-{
+bool SCTModule::checkHitModuleOverlap(const Hit& hit, bool debug) const
+{   
     double length = std::max(m_width/2, m_length/2);
     double width = std::min(m_width/2, m_length/2);
 
@@ -40,32 +40,45 @@ bool SCTModule::checkHitModuleOverlap(const Hit& hit) const
         bottom_rect_corners.push_back(rotate_point(corner.first, corner.second, 0, 0, m_rotation+m_stereo_angle));
     }
 
-    // std::cout << "Top rect = {";
-    // for (const auto& coord: top_rect_corners)
-    // {
-    //     std::cout << "(" << coord.first << ", " << coord.second << "), ";
-    // }
-    // std::cout << "}" << std::endl;
-    
-    // std::cout << "Bottom rect = {";
-    // for (const auto& coord: bottom_rect_corners)
-    // {
-    //     std::cout << "(" << coord.first << ", " << coord.second << "), ";
-    // }
-    // std::cout << "}" << std::endl;
-
-    // Centre hit and rotate onto rectangles
-    std::pair<double, double> rotated_hit_top = rotate_point(hit.x-m_xpos, hit.y-m_ypos, 0, 0, m_rotation);
-    std::pair<double, double> rotated_hit_bottom = rotate_point(hit.x-m_xpos, hit.y-m_ypos, 0, 0, m_rotation+m_stereo_angle);
+    // std::pair<double, double> rotated_hit_top = rotate_point(hit.x-m_xpos, hit.y-m_ypos, 0, 0, m_rotation);
+    // std::pair<double, double> rotated_hit_bottom = rotate_point(hit.x-m_xpos, hit.y-m_ypos, 0, 0, m_rotation+m_stereo_angle);
+    std::pair<double, double> rotated_hit_top = rotate_point(hit.x-m_xpos, hit.y-m_ypos, 0, 0, 0);
+    std::pair<double, double> rotated_hit_bottom = rotate_point(hit.x-m_xpos, hit.y-m_ypos, 0, 0, 0);
 
     // std::cout << "-----------------" << std::endl;
     // std::cout << hit << std::endl;
-    // std::cout << "Original hit pos = " << hit.x << ", " << hit.y << std::endl;
-    // std::cout << "Rotated hit pos1 = " << rotated_hit_top.first << ", " << rotated_hit_top.second << std::endl;
-    // std::cout << "Rotated hit pos2 = " << rotated_hit_bottom.first<< ", " << rotated_hit_bottom.second << std::endl;
+
 
     bool inside_top_rect = point_in_rectangle(Vec2(rotated_hit_top.first, rotated_hit_top.second), top_rect_corners);
     bool inside_bottom_rect = point_in_rectangle(Vec2(rotated_hit_bottom.first, rotated_hit_bottom.second), bottom_rect_corners);
+
+    
+    if (debug)
+    {   std::cout << std::endl << "---------------------" << std::endl;
+        std::cout << "Hit " << hit << std::endl;
+        std::cout << "Top rect = {";
+        for (const auto& coord: top_rect_corners)
+        {
+            std::cout << "(" << coord.first << ", " << coord.second << "), ";
+        }
+        std::cout << "}" << std::endl;
+        
+        std::cout << "Bottom rect = {";
+        for (const auto& coord: bottom_rect_corners)
+        {
+            std::cout << "(" << coord.first << ", " << coord.second << "), ";
+        }
+        std::cout << "}" << std::endl;
+
+
+        std::cout << "Original hit pos = " << hit.x << ", " << hit.y << std::endl;
+        std::cout << "Rotated hit pos1 = " << rotated_hit_top.first << ", " << rotated_hit_top.second << std::endl;
+        std::cout << "Rotated hit pos2 = " << rotated_hit_bottom.first<< ", " << rotated_hit_bottom.second << std::endl;
+        std::cout << "Is in both rects? "  << inside_top_rect << ", " << inside_bottom_rect << std::endl;
+        std::cout << std::endl << "---------------------" << std::endl;
+    }
+
+    // Centre hit and rotate onto rectangles
     // std::cout << "Is in both rects? "  << inside_top_rect << ", " << inside_bottom_rect << std::endl;
     // std::cout << "-----------------" << std::endl;
     return inside_top_rect && inside_bottom_rect;
@@ -284,15 +297,13 @@ void SCTModule::drawHitsOnModule(const std::vector<Hit>& hits, int marker_size, 
     ghost_hits_graph->SetMarkerSize(marker_size);
     ghost_hits_graph->SetMarkerColor(kRed);
     ghost_hits_graph->SetTitle("Ghost Hits");
-
-    true_hits_graph->GetXaxis()->SetLimits(-m_width/2, m_width/2);
-    true_hits_graph->GetYaxis()->SetLimits(-m_length/2, m_length/2);
     
-    matched_hits_graph->GetXaxis()->SetLimits(-m_width/2, m_width/2);
-    matched_hits_graph->GetYaxis()->SetLimits(-m_length/2, m_length/2);
-
-    ghost_hits_graph->GetXaxis()->SetLimits(-m_width/2, m_width/2);
-    ghost_hits_graph->GetYaxis()->SetLimits(-m_length/2, m_length/2);
+    true_hits_graph->Draw("AP");
+    c1->Update();
+    matched_hits_graph->Draw("P SAME");
+    c1->Update();
+    ghost_hits_graph->Draw("P SAME");
+    c1->Update();
 
     bool firstDraw{true};
     for (const auto& strip_pair : top_hit_strip_pairs) {
@@ -304,19 +315,19 @@ void SCTModule::drawHitsOnModule(const std::vector<Hit>& hits, int marker_size, 
         line1->SetPoint(1, end1.x, end1.y);
         line1->SetLineColor(kOrange);
         line1->SetLineWidth(line_width);
-        line1->GetXaxis()->SetLimits(-m_width/2, m_width/2);
-        line1->GetYaxis()->SetLimits(-m_length/2, m_length/2);
+        line1->GetYaxis()->SetLimits(-1.5*m_length/2, 1.5*m_length/2);
+        line1->GetXaxis()->SetLimits(-1.5*m_length/2, 1.5*m_length/2);
 
-        std::cout << "Anchor = " << strip_pair.first.anchor.x << ", " << strip_pair.first.anchor.y << std::endl;
-        std::cout << "End = " << end1.x << ", " << end1.y << std::endl;
+        // std::cout << "Anchor = " << strip_pair.first.anchor.x << ", " << strip_pair.first.anchor.y << std::endl;
+        // std::cout << "End = " << end1.x << ", " << end1.y << std::endl;
 
         if (firstDraw)
         {
-            line1->Draw();
+            line1->Draw("L SAME");
         }
         else
         {
-            line1->Draw("SAME");
+            line1->Draw("L SAME");
         }
         
         c1->Update();
@@ -327,9 +338,9 @@ void SCTModule::drawHitsOnModule(const std::vector<Hit>& hits, int marker_size, 
         line2->SetPoint(1, end2.x, end2.y);
         line2->SetLineColor(kOrange);
         line2->SetLineWidth(line_width);
-        line2->GetXaxis()->SetLimits(-m_width/2, m_width/2);
-        line2->GetYaxis()->SetLimits(-m_length/2, m_length/2);
-        line2->Draw("SAME");
+        line2->GetYaxis()->SetLimits(-1.5*m_length/2, 1.5*m_length/2);
+        line2->GetXaxis()->SetLimits(-1.5*m_length/2, 1.5*m_length/2);
+        line2->Draw("L SAME");
         c1->Update();
     }
 
@@ -342,10 +353,10 @@ void SCTModule::drawHitsOnModule(const std::vector<Hit>& hits, int marker_size, 
         line1->SetPoint(1, end1.x, end1.y);
         line1->SetLineColor(kGray);
         line1->SetLineWidth(line_width);
-        line1->GetYaxis()->SetLimits(-m_width/2, m_width/2);
-        line1->GetXaxis()->SetLimits(-m_length/2, m_length/2);   
-        line1->Draw("SAME");
-        c1->Update();
+        line1->GetYaxis()->SetLimits(-1.5*m_length/2, 1.5*m_length/2);
+        line1->GetXaxis()->SetLimits(-1.5*m_length/2, 1.5*m_length/2);   
+        line1->Draw("L SAME");
+        // c1->Update();
 
         auto end2 = strip_pair.second.get_end(m_length);
         TGraph *line2 = new TGraph();
@@ -353,19 +364,36 @@ void SCTModule::drawHitsOnModule(const std::vector<Hit>& hits, int marker_size, 
         line2->SetPoint(1, end2.x, end2.y);
         line2->SetLineColor(kGray);
         line2->SetLineWidth(line_width);
-        line2->GetYaxis()->SetLimits(-m_width/2, m_width/2);
-        line2->GetXaxis()->SetLimits(-m_length/2, m_length/2);
-        line2->Draw("SAME");
-        c1->Update();
+        line2->GetYaxis()->SetLimits(-1.5*m_length/2, 1.5*m_length/2);
+        line2->GetXaxis()->SetLimits(-1.5*m_length/2, 1.5*m_length/2);
+        line2->Draw("L SAME");
+        // c1->Update();
+
+        // std::cout << "Anchor = " << strip_pair.first.anchor.x << ", " << strip_pair.first.anchor.y << std::endl;
+        // std::cout << "End = " << end1.x << ", " << end1.y << std::endl;
+        // std::cout << "------------------------------------------" << std::endl;
+        // std::cout << "Anchor = " << strip_pair.second.anchor.x << ", " << strip_pair.second.anchor.y << std::endl;
+        // std::cout << "End = " << end2.x << ", " << end2.y << std::endl;
+        // std::cout << "------------------------------------------" << std::endl;
+
     }
 
-    true_hits_graph->Draw("P SAME");
-    // true_hits_graph->Draw();
-    c1->Update();
-    matched_hits_graph->Draw("P SAME");
-    c1->Update();
-    ghost_hits_graph->Draw("P SAME");
-    c1->Update();
+    // true_hits_graph->Draw("P SAME");
+    // true_hits_graph->Draw("AP SAME");
+    // c1->Update();
+    // matched_hits_graph->Draw("P SAME");
+    // c1->Update();
+    // ghost_hits_graph->Draw("P SAME");
+    // c1->Update();
+
+    true_hits_graph->GetYaxis()->SetLimits(-1.5*m_length/2, 1.5*m_length/2);
+    true_hits_graph->GetXaxis()->SetLimits(-1.5*m_length/2, 1.5*m_length/2);
+    
+    matched_hits_graph->GetYaxis()->SetLimits(-1.5*m_length/2, 1.5*m_length/2);
+    matched_hits_graph->GetXaxis()->SetLimits(-1.5*m_length/2, 1.5*m_length/2);
+
+    ghost_hits_graph->GetYaxis()->SetLimits(-1.5*m_length/2, 1.5*m_length/2);
+    ghost_hits_graph->GetXaxis()->SetLimits(-1.5*m_length/2, 1.5*m_length/2);
 
     std::cout << "Width " << m_width <<  std::endl;
     std::cout << "Length " << m_length <<  std::endl;
@@ -375,8 +403,9 @@ void SCTModule::drawHitsOnModule(const std::vector<Hit>& hits, int marker_size, 
     legend->AddEntry(true_hits_graph, "True Hits", "p");
     legend->AddEntry(matched_hits_graph, "Matched Hits", "p");
     legend->AddEntry(ghost_hits_graph, "Ghost Hits", "p");
-    legend->Draw();
-
+    legend->Draw()  ;
+    c1->GetPad(0)->SetLeftMargin(0.30);
+    // c1->GetPad(1)->SetBottomMargin(0.15);
     c1->Update();
     c1->SaveAs("hits.pdf");
 }

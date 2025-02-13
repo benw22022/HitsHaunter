@@ -43,7 +43,7 @@ private:
 public:
     SCTModule(double xpos, double ypos, double zpos, int layer, double rotation=0, bool flip=false, std::string name="", double width=63.56, double length=128.05, int nstrips=768, double stereo_angle=0.04);
     
-    bool checkHitModuleOverlap(const Hit& hit) const;
+    bool checkHitModuleOverlap(const Hit& hit, bool debug=false) const;
 
     std::pair<std::set<std::pair<Vector2D,Vector2D>>, std::set<std::pair<Vector2D,Vector2D>>> getHitStrips(const std::vector<Hit>& hits) const;
 
