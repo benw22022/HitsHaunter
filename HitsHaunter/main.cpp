@@ -54,39 +54,55 @@ int main(int argc, char* argv[]) {
     // std::cout << "Opening input file: " << inputFile << std::endl;
     // std::cout << "Creating output file: " << outputFile << std::endl;
 
+    //TODO: Don't hardcode this!
     std::string inputFile =  "FASERvSi_baseline-charmTrench-680fb.0.HITS.root";
     std::string outputFile = "test.root";
 
     RootReader reader{inputFile.c_str(), "Hits"};
     RootWriter writer{outputFile.c_str(), "Hits"};
     
-    Event event = reader.get_event(54);
+    //* Initialise SCT Modules
+    std::vector<SCTModule> modules{};
+    std::vector<std::pair<double, bool>> module_params{{0,false}, {M_PI/2,true}, {0, true}, {M_PI/2,true}};
+    
+    for (unsigned int i{0}; i < 132; i++)
+    {   
+        double rotation{0};
+        bool flip_module{false};
+        int index = i % module_params.size();
 
-    std::cout << event << std::endl;
-
-    for (auto&  hit: event.hits)
-    {
-        hit.x -= event.vertex_x;
-        hit.y -= event.vertex_y;
-        hit.z -= event.vertex_z;
+        SCTModule module{0, 0, 0, i, module_params[index].first, module_params[index].second};
+        modules.push_back(module);
     }
 
-    SCTModule module(0., 0., 0., 78, M_PI/2, true);
-    std::cout << module << std::endl;
+    
+    //* Main event loop
+    for (unsigned int event_idx{0}; event_idx < reader.get_nentries(); event_idx++)
+    {       
+        Event event = reader.get_event(event_idx);
 
-    module.drawHitsOnModule(event.hits);
+        std::cout << event_idx << "/" << reader.get_nentries() << ": " << event << std::endl;
 
+        // Centre hits
+        for (auto&  hit: event.hits)
+        {
+            hit.x -= event.vertex_x;
+            hit.y -= event.vertex_y;
+            hit.z -= event.vertex_z;
+        }
 
-    // for (unsigned int event_idx{0}; event_idx < reader.get_nentries(); event_idx++)
-    // {   
+        Event new_event = event;
+        std::vector<Hit> new_hits{};  //TODO: Write out truth and digitized hits to seperate branches
+        for (const auto& module: modules)
+        {
+            std::vector<Hit> digit_hits = module.digitizeHits(event.hits);
+            new_hits.insert(new_hits.end(), digit_hits.begin(), digit_hits.end());
+        }
+
+        new_event.hits = new_hits;
         
-    //     Event event = reader.get_event(event_idx);
-    //     SCTModule module(0., 0., 0., 0);
+        writer.write_event(new_event);
+    }
 
-    //     module.drawHitsOnModule(event.hits);
-
-
-    //     return 0;
-    // }
     return 0;
 }

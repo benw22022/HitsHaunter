@@ -3,6 +3,8 @@
 
 #include <iostream>
 
+//TODO: This data structure is very inefficient, better to do a struct of vectors 
+//TODO: rather than a vector of structs
 class Hit {
 public:
     double x, y, z;

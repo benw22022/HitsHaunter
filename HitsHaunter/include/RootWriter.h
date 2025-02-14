@@ -20,6 +20,7 @@
 
 
 class RootReader;
+class Event;
 
 class RootWriter {
 
@@ -28,6 +29,7 @@ class RootWriter {
         ~RootWriter();
 
         void write_event(RootReader& reader);
+        void write_event(Event& event);
         
     private:
 
@@ -65,6 +67,7 @@ class RootWriter {
         std::vector<int>*    m_hits_pdgc = nullptr;
         std::vector<double>* m_hits_charge = nullptr;
         std::vector<int>*    m_hits_layernum = nullptr;
+        std::vector<int>*    m_hits_counter = nullptr;
         
 };
 

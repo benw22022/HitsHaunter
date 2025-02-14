@@ -78,9 +78,6 @@ bool SCTModule::checkHitModuleOverlap(const Hit& hit, bool debug) const
         std::cout << std::endl << "---------------------" << std::endl;
     }
 
-    // Centre hit and rotate onto rectangles
-    // std::cout << "Is in both rects? "  << inside_top_rect << ", " << inside_bottom_rect << std::endl;
-    // std::cout << "-----------------" << std::endl;
     return inside_top_rect && inside_bottom_rect;
 }
 
@@ -136,7 +133,7 @@ std::tuple<std::vector<Hit>, std::set<std::pair<Vector2D, Vector2D>>, std::set<s
 {
     std::pair<std::set<std::pair<Vector2D,Vector2D>>, std::set<std::pair<Vector2D,Vector2D>>> hit_strips = getHitStrips(hits);
     
-    std::cout << "Found " << hit_strips.first.size() << " hit strips" << std::endl;
+    // std::cout << "Found " << hit_strips.first.size() << " hit strips" << std::endl;
 
     std::vector<Hit> space_points{};
 
@@ -228,6 +225,15 @@ void SCTModule::matchSpacePointsToHits(const std::vector<Hit>& hits, std::vector
         }
     }
 }
+
+std::vector<Hit> SCTModule::digitizeHits(const std::vector<Hit>& hits) const
+{
+    auto [space_points, top_hit_strip_pairs, bottom_hit_strip_pairs] = getSpacePoints(hits);
+    matchSpacePointsToHits(hits, space_points);
+    return space_points;
+}
+
+
 
 void SCTModule::drawHitsOnModule(const std::vector<Hit>& hits, int marker_size, int line_width) const
 {

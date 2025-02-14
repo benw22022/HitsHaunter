@@ -61,6 +61,38 @@ class Event {
             }
         }
 
+        Event(const Event& other) {
+            event_number = other.event_number;
+            vertex_x = other.vertex_x;
+            vertex_y = other.vertex_y;
+            vertex_z = other.vertex_z;
+            nu_E = other.nu_E;
+            nu_px = other.nu_px;
+            nu_py = other.nu_py;
+            nu_pz = other.nu_pz;
+            nu_pdgc = other.nu_pdgc;
+            target_pdgc = other.target_pdgc;
+            isCC = other.isCC;
+            cclepton_pdgc = other.cclepton_pdgc;
+            cclepton_E = other.cclepton_E;
+            cclepton_px = other.cclepton_px;
+            cclepton_py = other.cclepton_py;
+            cclepton_pz = other.cclepton_pz;
+            hits = other.hits;
+        }
+
+        template <typename T, typename MemberType>
+        std::vector<MemberType> getHitValues(MemberType Hit::* member) const {
+            std::vector<MemberType> values;
+            for (const auto& hit : hits) {
+                values.push_back(hit.*member);
+            }
+            return values;
+        }
+
+
+
+
         friend std::ostream& operator<<(std::ostream& os, const Event& event);
 };
 

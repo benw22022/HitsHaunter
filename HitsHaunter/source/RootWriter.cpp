@@ -6,6 +6,7 @@
 
 #include "RootReader.h"
 #include "RootWriter.h"
+#include "Event.h"
 // #include <Eigen/Dense>
 // #include <Math/Minimizer.h>
 // #include <Math/Functor.h>
@@ -53,7 +54,8 @@ RootWriter::RootWriter(const char* filename, const char* treename) :
     m_tree->Branch("E",             &m_hits_E); 
     m_tree->Branch("pdgc",          &m_hits_pdgc); 
     m_tree->Branch("charge",        &m_hits_charge); 
-    m_tree->Branch("layer",         &m_hits_layernum); 
+    m_tree->Branch("layer",         &m_hits_layernum);
+    m_tree->Branch("counter",       &m_hits_counter); 
 }
 
 RootWriter::~RootWriter()
@@ -74,6 +76,7 @@ void RootWriter::write_event(RootReader& reader)
     m_hits_pdgc->clear();
     m_hits_charge->clear();
     m_hits_layernum->clear();
+    m_hits_counter->clear();
     
 
     // Move data from reader into writer
@@ -100,6 +103,7 @@ void RootWriter::write_event(RootReader& reader)
     m_hits_pdgc     = std::move(reader.m_hits_pdgc);
     m_hits_charge   = std::move(reader.m_hits_charge);
     m_hits_layernum = std::move(reader.m_hits_layernum);
+    m_hits_counter = std::move(reader.m_hits_layernum);
 
     // Set nullptrs for safety 
     reader.m_hits_x = nullptr;
@@ -117,4 +121,48 @@ void RootWriter::write_event(RootReader& reader)
     m_tree->Fill();
 }
 
+
+void RootWriter::write_event(Event& event)
+{
+    m_currentEntry++;
+
+    // Clear these vectors - else they'll just keep growing
+    m_hits_x->clear();
+    m_hits_y->clear();
+    m_hits_z->clear();
+    m_hits_E->clear();
+    m_hits_pdgc->clear();
+    m_hits_charge->clear();
+    m_hits_layernum->clear();
+    m_hits_counter->clear();
+    
+
+    // Move data from reader into writer
+    m_event_number = event.event_number;
+    m_vertex_x = event.vertex_x;    
+    m_vertex_y = event.vertex_y;    
+    m_vertex_z = event.vertex_z;    
+    m_nu_E =  event.nu_E;        
+    m_nu_px = event.nu_px;       
+    m_nu_py = event.nu_py;       
+    m_nu_pz = event.nu_pz;       
+    m_nu_pdgc = event.nu_pdgc;     
+    m_target_pdgc  = event.target_pdgc; 
+    m_isCC = event.isCC;        
+    m_cclepton_pdgc  = event.cclepton_pdgc;
+    m_cclepton_E  = event.cclepton_E;
+    m_cclepton_px = event.cclepton_px;
+    m_cclepton_py = event.cclepton_py;
+    m_cclepton_pz = event.cclepton_pz;
+    *m_hits_x        = std::move(event.getHitValues<double>(&Hit::x));
+    *m_hits_y        = std::move(event.getHitValues<double>(&Hit::y));
+    *m_hits_z        = std::move(event.getHitValues<double>(&Hit::z));
+    *m_hits_E        = std::move(event.getHitValues<double>(&Hit::energy));
+    *m_hits_pdgc     = std::move(event.getHitValues<int>(&Hit::pdgc));
+    *m_hits_charge   = std::move(event.getHitValues<double>(&Hit::charge));
+    *m_hits_layernum = std::move(event.getHitValues<int>(&Hit::layer));
+    *m_hits_counter  = std::move(event.getHitValues<int>(&Hit::counter));
+
+    m_tree->Fill();
+}
 
