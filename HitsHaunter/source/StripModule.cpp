@@ -39,18 +39,11 @@ bool SCTModule::checkHitModuleOverlap(const Hit& hit, bool debug) const
         top_rect_corners.push_back(rotate_point(corner.first, corner.second, 0, 0, m_rotation));
         bottom_rect_corners.push_back(rotate_point(corner.first, corner.second, 0, 0, m_rotation+m_stereo_angle));
     }
+    
+    std::pair<double, double> hit_centred{hit.x-m_xpos, hit.y-m_ypos};
 
-    // std::pair<double, double> rotated_hit_top = rotate_point(hit.x-m_xpos, hit.y-m_ypos, 0, 0, m_rotation);
-    // std::pair<double, double> rotated_hit_bottom = rotate_point(hit.x-m_xpos, hit.y-m_ypos, 0, 0, m_rotation+m_stereo_angle);
-    std::pair<double, double> rotated_hit_top = rotate_point(hit.x-m_xpos, hit.y-m_ypos, 0, 0, 0);
-    std::pair<double, double> rotated_hit_bottom = rotate_point(hit.x-m_xpos, hit.y-m_ypos, 0, 0, 0);
-
-    // std::cout << "-----------------" << std::endl;
-    // std::cout << hit << std::endl;
-
-
-    bool inside_top_rect = point_in_rectangle(Vec2(rotated_hit_top.first, rotated_hit_top.second), top_rect_corners);
-    bool inside_bottom_rect = point_in_rectangle(Vec2(rotated_hit_bottom.first, rotated_hit_bottom.second), bottom_rect_corners);
+    bool inside_top_rect = point_in_rectangle(Vec2(hit_centred.first, hit_centred.second), top_rect_corners);
+    bool inside_bottom_rect = point_in_rectangle(Vec2(hit_centred.first, hit_centred.second), bottom_rect_corners);
 
     
     if (debug)
@@ -72,8 +65,8 @@ bool SCTModule::checkHitModuleOverlap(const Hit& hit, bool debug) const
 
 
         std::cout << "Original hit pos = " << hit.x << ", " << hit.y << std::endl;
-        std::cout << "Rotated hit pos1 = " << rotated_hit_top.first << ", " << rotated_hit_top.second << std::endl;
-        std::cout << "Rotated hit pos2 = " << rotated_hit_bottom.first<< ", " << rotated_hit_bottom.second << std::endl;
+        std::cout << "Rotated hit pos1 = " << hit_centred.first << ", " << hit_centred.second << std::endl;
+        std::cout << "Rotated hit pos2 = " << hit_centred.first<< ", " << hit_centred.second << std::endl;
         std::cout << "Is in both rects? "  << inside_top_rect << ", " << inside_bottom_rect << std::endl;
         std::cout << std::endl << "---------------------" << std::endl;
     }
@@ -132,8 +125,6 @@ std::pair<std::set<std::pair<Vector2D,Vector2D>>, std::set<std::pair<Vector2D,Ve
 std::tuple<std::vector<Hit>, std::set<std::pair<Vector2D, Vector2D>>, std::set<std::pair<Vector2D, Vector2D>>> SCTModule::getSpacePoints(const std::vector<Hit>& hits) const
 {
     std::pair<std::set<std::pair<Vector2D,Vector2D>>, std::set<std::pair<Vector2D,Vector2D>>> hit_strips = getHitStrips(hits);
-    
-    // std::cout << "Found " << hit_strips.first.size() << " hit strips" << std::endl;
 
     std::vector<Hit> space_points{};
 
@@ -152,22 +143,17 @@ std::tuple<std::vector<Hit>, std::set<std::pair<Vector2D, Vector2D>>, std::set<s
         std::vector<Vec2> intercepts{intercept_11, intercept_12, intercept_21, intercept_22};
 
         // Check that all intercept points lie on the module
-        // std::cout << "-------------" << std::endl;
         for (const auto& intercept : intercepts)
         {   
-            // std::cout << "Intercept = " << intercept.x << ", " << intercept.y << std::endl;
             if (!checkHitModuleOverlap(Hit{intercept.x, intercept.y}))
             {
-                // std::cout << "Intercept not on module" << std::endl;   
                 is_valid = false;
             }
         }
-        // std::cout << "-------------" << std::endl;
 
         // If all intercepts are on module then construct a space-point
         if (is_valid)
         {
-            // std::cout << "Intercepts are valid!" << std::endl;
             Hit sp;
             sp.x = (intercept_11.x + intercept_12.x + intercept_21.x + intercept_22.x) / 4;
             sp.y = (intercept_11.y + intercept_12.y + intercept_21.y + intercept_22.y) / 4;
@@ -179,7 +165,6 @@ std::tuple<std::vector<Hit>, std::set<std::pair<Vector2D, Vector2D>>, std::set<s
             auto it = std::find(space_points.begin(), space_points.end(), sp);
             if (it == space_points.end()) 
             {   
-                // std::cout << "pushing space point" << sp << "back onto vector" << std::endl;
                 space_points.push_back(sp);
             }   
             
@@ -242,17 +227,9 @@ void SCTModule::drawHitsOnModule(const std::vector<Hit>& hits, int marker_size, 
     TGraph *matched_hits_graph = new TGraph();
     TGraph *ghost_hits_graph = new TGraph();
 
-    // for (unsigned int i{0}; i < 10; i++)
-    // {
-    //     std::cout << hits.at(i) << std::endl;
-    // }
-
     auto [space_points, top_hit_strip_pairs, bottom_hit_strip_pairs] = getSpacePoints(hits);
 
     std::cout << "Found " << space_points.size() << " space points" << std::endl;
-    // for (const auto& sp: space_points){
-    //     std::cout << sp << std::endl;
-    // }
 
     matchSpacePointsToHits(hits, space_points);
 
