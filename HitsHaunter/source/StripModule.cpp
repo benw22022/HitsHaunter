@@ -65,8 +65,7 @@ bool SCTModule::checkHitModuleOverlap(const Hit& hit, bool debug) const
 
 
         std::cout << "Original hit pos = " << hit.x << ", " << hit.y << std::endl;
-        std::cout << "Rotated hit pos1 = " << hit_centred.first << ", " << hit_centred.second << std::endl;
-        std::cout << "Rotated hit pos2 = " << hit_centred.first<< ", " << hit_centred.second << std::endl;
+        std::cout << "Centred hit pos = " << hit_centred.first << ", " << hit_centred.second << std::endl;
         std::cout << "Is in both rects? "  << inside_top_rect << ", " << inside_bottom_rect << std::endl;
         std::cout << std::endl << "---------------------" << std::endl;
     }
@@ -94,6 +93,7 @@ std::set<std::pair<Vector2D,Vector2D>> SCTModule::getHitStripsOneLayer(const std
             continue;
         }
 
+        // Work out how close each strip edge is to the hit
         std::vector<std::pair<double, Vector2D>> distances{};
 
         // For each strip edge, find the distance between hit and the edge
@@ -103,6 +103,7 @@ std::set<std::pair<Vector2D,Vector2D>> SCTModule::getHitStripsOneLayer(const std
             distances.push_back({strip_to_hit_distance, strip_edge});
         }
         
+        // Find the two strip edges closest to the hit
         std::sort(distances.begin(), distances.end(), distanceStripComparator);  
         hit_strips.insert({distances[0].second, distances[1].second});
     }
@@ -115,6 +116,7 @@ std::pair<std::set<std::pair<Vector2D,Vector2D>>, std::set<std::pair<Vector2D,Ve
     std::set<std::pair<Vector2D,Vector2D>> hit_top_strips{};
     std::set<std::pair<Vector2D,Vector2D>> hit_bottom_strips{};
 
+    // Work out which strips were hit
     hit_top_strips = getHitStripsOneLayer(m_top_strip_edges, hits);
     hit_bottom_strips = getHitStripsOneLayer(m_bottom_strip_edges, hits);
     
@@ -134,7 +136,7 @@ std::tuple<std::vector<Hit>, std::set<std::pair<Vector2D, Vector2D>>, std::set<s
         bool is_valid = true;
         
 
-        // Work out where all strips intercept
+        // Work out where all strip edges intercept
         Vec2 intercept_11 = top_strip_edge_pairs.first.compute_intercept(bottom_strip_edge_pairs.first);
         Vec2 intercept_12 = top_strip_edge_pairs.first.compute_intercept(bottom_strip_edge_pairs.second);
         Vec2 intercept_21 = top_strip_edge_pairs.second.compute_intercept(bottom_strip_edge_pairs.first);
@@ -157,7 +159,7 @@ std::tuple<std::vector<Hit>, std::set<std::pair<Vector2D, Vector2D>>, std::set<s
             Hit sp;
             sp.x = (intercept_11.x + intercept_12.x + intercept_21.x + intercept_22.x) / 4;
             sp.y = (intercept_11.y + intercept_12.y + intercept_21.y + intercept_22.y) / 4;
-            sp.z = m_zpos;
+            sp.z = m_zpos; //! Make sure you have set the z-position of the module properly!
             sp.layer  = m_layer;
             sp.charge = 1;
 
@@ -176,7 +178,8 @@ std::tuple<std::vector<Hit>, std::set<std::pair<Vector2D, Vector2D>>, std::set<s
 }
 
 void SCTModule::matchSpacePointsToHits(const std::vector<Hit>& hits, std::vector<Hit>& space_points) const
-{
+{   
+    // Loop through all hits and find the nearest space point
     for (const auto& hit: hits)
     {
         double smallest_distance{10e10};
@@ -199,6 +202,7 @@ void SCTModule::matchSpacePointsToHits(const std::vector<Hit>& hits, std::vector
             sp_index++;
         }
         
+        // Decorate the chosen space point with the true hit information
         if (best_idx != -1)
         {
             space_points.at(best_idx).pdgc = hit.pdgc;
@@ -206,7 +210,7 @@ void SCTModule::matchSpacePointsToHits(const std::vector<Hit>& hits, std::vector
             space_points.at(best_idx).energy = hit.energy;
             space_points.at(best_idx).z = hit.z;
             space_points.at(best_idx).layer = hit.layer;
-            space_points.at(best_idx).counter += 1;
+            space_points.at(best_idx).counter += 1; //* This keeps track of how many hits have been matched to the same space point
         }
     }
 }
@@ -220,8 +224,9 @@ std::vector<Hit> SCTModule::digitizeHits(const std::vector<Hit>& hits) const
 
 
 
-void SCTModule::drawHitsOnModule(const std::vector<Hit>& hits, int marker_size, int line_width) const
+void SCTModule::drawHitsOnModule(const std::vector<Hit>& hits, int marker_size, int line_width, std::string plot_name) const
 {
+    //! This code is gross - be warned. Cannot get the axis limits to set properly
     TCanvas *c1 = new TCanvas("c1", "Hits", 800, 600);
     TGraph *true_hits_graph = new TGraph();
     TGraph *matched_hits_graph = new TGraph();
@@ -390,7 +395,7 @@ void SCTModule::drawHitsOnModule(const std::vector<Hit>& hits, int marker_size, 
     c1->GetPad(0)->SetLeftMargin(0.30);
     // c1->GetPad(1)->SetBottomMargin(0.15);
     c1->Update();
-    c1->SaveAs("hits.pdf");
+    c1->SaveAs(plot_name.c_str());
 }
 
 std::ostream& operator<<(std::ostream& os, const SCTModule& module) {

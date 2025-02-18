@@ -51,11 +51,13 @@ public:
 
     void matchSpacePointsToHits(const std::vector<Hit>& hits, std::vector<Hit>& space_points) const;
 
-    void drawHitsOnModule(const std::vector<Hit>& hits, int marker_size = 1, int line_width = 1) const;
+    void drawHitsOnModule(const std::vector<Hit>& hits, int marker_size = 1, int line_width = 1, std::string plot_name = "Hits.pdf") const;
     
     std::vector<Hit> digitizeHits(const std::vector<Hit>& hits) const;
 
     friend std::ostream& operator<<(std::ostream& os, const SCTModule& module);
+
+    int getLayerNum() const {return m_layer;}
 
 };
 

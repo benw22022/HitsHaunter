@@ -62,16 +62,19 @@ int main(int argc, char* argv[]) {
     RootWriter writer{outputFile.c_str(), "Hits"};
     
     //* Initialise SCT Modules
+    double module_start_pos = 550 + 0.9/2;                // Starting z-position of SCT modules [mm]
+    double module_offset = 7.98;                  // Offset between SCT modules [mm]
     std::vector<SCTModule> modules{};
     std::vector<std::pair<double, bool>> module_params{{0,false}, {M_PI/2,true}, {0, true}, {M_PI/2,true}};
     
-    for (unsigned int i{0}; i < 132; i++)
+    for (int i{0}; i < 132; i++)
     {   
         double rotation{0};
         bool flip_module{false};
         int index = i % module_params.size();
+        double module_zpos = module_start_pos + module_offset * i;
 
-        SCTModule module{0, 0, 0, i, module_params[index].first, module_params[index].second};
+        SCTModule module{0, 0, module_zpos, i, module_params[index].first, module_params[index].second};
         modules.push_back(module);
     }
 
@@ -83,12 +86,15 @@ int main(int argc, char* argv[]) {
 
         std::cout << event_idx << "/" << reader.get_nentries() << ": " << event << std::endl;
 
+        if (abs(event.nu_pdgc) != 16) continue;
+
+
         // Centre hits
         for (auto&  hit: event.hits)
         {
             hit.x -= event.vertex_x;
             hit.y -= event.vertex_y;
-            hit.z -= event.vertex_z;
+            // hit.z -= event.vertex_z;
         }
 
         Event new_event = event;
@@ -96,6 +102,15 @@ int main(int argc, char* argv[]) {
         for (const auto& module: modules)
         {
             std::vector<Hit> digit_hits = module.digitizeHits(event.hits);
+
+            if (event.event_number == 11855459)
+            {   
+                std::string figname = "11855459_hits_module_";
+                figname = figname + std::to_string(module.getLayerNum()) + ".png";
+                module.drawHitsOnModule(event.hits, 1, 1, figname);
+            }
+
+
             new_hits.insert(new_hits.end(), digit_hits.begin(), digit_hits.end());
         }
 
