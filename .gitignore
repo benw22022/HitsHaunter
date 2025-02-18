@@ -5,3 +5,4 @@
 *.jpeg
 *.svg
 *.root
+*__pycache__*
