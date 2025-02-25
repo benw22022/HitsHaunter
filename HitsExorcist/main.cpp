@@ -76,24 +76,6 @@ int main(int argc, char* argv[]) {
     RootReader reader{inputFile.c_str(), "Hits"};
     RootWriter writer{outputFile.c_str(), "Hits"};
     
-    //* Initialise SCT Modules
-    double module_start_pos = 550 + 0.9/2;                // Starting z-position of SCT modules [mm]
-    double module_offset = 7.98;                  // Offset between SCT modules [mm]
-    std::vector<SCTModule> modules{};
-    std::vector<std::pair<double, bool>> module_params{{0,false}, {M_PI/2,true}, {0, true}, {M_PI/2,true}};
-    
-    for (int i{0}; i < 132; i++)
-    {   
-        double rotation{0};
-        bool flip_module{false};
-        int index = i % module_params.size();
-        double module_zpos = module_start_pos + module_offset * i;
-
-        SCTModule module{0, 0, module_zpos, i, module_params[index].first, module_params[index].second};
-        modules.push_back(module);
-    }
-
-    
     //* Main event loop
     for (unsigned int event_idx{0}; event_idx < reader.get_nentries(); event_idx++)
     {       
@@ -102,28 +84,90 @@ int main(int argc, char* argv[]) {
         std::cout << event_idx << "/" << reader.get_nentries() << ": " << event << std::endl;
 
         Event new_event = event;
+
+        // if (event.event_number != 11855459) continue;
+        // if (event.event_number != 62725516) continue;
         
         std::vector<int> hit_indices_to_erase{};
+        
         int hit_index{0};
+        int n_wrongly_tagged_hits{0};
         for (const auto& hit: event.hits)
         {
             int layer_of_hit = hit.layer; 
+            bool remove_hit = true;
+            double closest_distance = 1e10;
 
             for (const auto& another_hit: event.hits)
             {
-                if (another_hit.layer != layer_of_hit + 1 && another_hit.layer != layer_of_hit - 1) continue;
-                if (std::hypot(hit.x - another_hit.x, hit.y - another_hit.y) < 10) continue;
-                
-                //* if there is no hit is within an adjacent layer within 10mm then it is a ghost to erase
-                
-                hit_indices_to_erase.push_back(hit_index);
-    
+                if (another_hit.layer == layer_of_hit + 1 || another_hit.layer == layer_of_hit - 1)
+                {   
+                    if (pow( pow(hit.x - another_hit.x, 2) + pow(hit.y - another_hit.y, 2), 0.5) < 2){
+                        // std::cout << hit << " " << another_hit << std::endl;
+                        remove_hit = false;
+                        break;
+                    }                    
+                }
             }
+            
+            
+            //* if there is no hit is within an adjacent layer within 10mm then it is a ghost to erase
+            if (remove_hit)
+            {   
+                if (hit.pdgc != 0){
+                    n_wrongly_tagged_hits++;
+                    // std::cout << "INFO: Removing non-ghost hit! " << hit << " nearest hit was " << closest_distance << " mm away" << std::endl;
+                }
+                hit_indices_to_erase.push_back(hit_index);
+            }
+            hit_index++;
         }
 
-         deleteElementsByIndices(new_event.hits, hit_indices_to_erase);
+        std::cout << "Removing " << hit_indices_to_erase.size() << " hits" << " of which " << n_wrongly_tagged_hits << " were wrongly classified as ghosts" << std::endl;
+        double misid_eff = static_cast<double>(n_wrongly_tagged_hits) / static_cast<double>(hit_indices_to_erase.size());
+        std::cout << "Mis-ID efficiency is " << misid_eff  * 100 << " %" << std::endl;
+
+        // std::vector<Hit> new_hits{};
+        // int n_kept{0};
+        // int n_removed{0};
+        // for (unsigned int i{0}; i < event.hits.size(); i++)
+        // {   
+        //     // std::cout << i << " / " << event.hits.size() << std::endl;
+        //     bool remove_this{false};
+        //     for (const int& index : hit_indices_to_erase)
+        //     {   
+        //         // std::cout << i << " ----  " << index << " / " << hit_indices_to_erase.size() << std::endl;
+        //         if (i == index)
+        //         {   
+
+        //             n_removed++;
+        //             remove_this = true;
+        //             break;
+        //         }
+        //     }
+
+        //     if (!remove_this){
+        //         n_kept++;
+                
+                
+        //         // if (abs(new_event.hits[i].x) > 30)
+        //         // {
+        //         //     std::cout << "Keeping " << new_event.hits[i] << std::endl;    
+        //         // }
+
+        //         new_hits.emplace_back(new_event.hits[i]);
+        //     }
+        // }
+
+        // std::cout << "Removed: " << n_removed << "   Kept: " << n_kept << std::endl;
+        
+        // new_event.hits.clear();
+        // new_event.hits = new_hits;
+
+        deleteElementsByIndices(new_event.hits, hit_indices_to_erase);
         
         writer.write_event(new_event);
+        // return 0;
     }
 
     return 0;

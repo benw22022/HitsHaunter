@@ -13,6 +13,9 @@ public:
 
     Hit(double x = 0, double y = 0, double z = 0, double charge = 0, double energy = 0, int pdgc = 0, int layer = 0, int counter = 0)
         : x(x), y(y), z(z), charge(charge), energy(energy), pdgc(pdgc), layer(layer), counter(counter) {}
+    
+    Hit(const Hit& other)
+        : x(other.x), y(other.y), z(other.z), charge(other.charge), energy(other.energy), pdgc(other.pdgc), layer(other.layer), counter(other.counter) {}
 
     bool operator==(const Hit& other) const {
         return x == other.x && y == other.y && z == other.z;
