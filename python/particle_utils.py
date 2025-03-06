@@ -84,7 +84,15 @@ def scatter_on_ax(ax, event_data, x_var, y_var, label, color,  alpha=1, marker_s
     return ax.scatter(event_data[x_var], event_data[y_var], color=color, marker=",", label=label, alpha=alpha, s=marker_size)
 
 
-def plot_event_z_y_x_y(hits, truth, event_number, output_dir, show=False):
+def get_xyx(event, cut):
+    
+    x = event['x'][cut]
+    y = event['y'][cut]
+    z = event['z'][cut]
+
+    return {"x": x, "y": y, "z": z}
+
+def plot_event_z_y_x_y(event, output_dir, show=False):
     
     os.makedirs(output_dir, exist_ok=True)
     
@@ -97,61 +105,53 @@ def plot_event_z_y_x_y(hits, truth, event_number, output_dir, show=False):
                                 }
 
     fig, ax = plt.subplots(ncols=2, figsize=(18, 6))
-
-    try:
-        truth_info = truth.arrays(truth.keys(), library="ak", cut=f"fEvent == {event_number}")
-    except AttributeError:
-        truth_info = truth[truth["fEvent"] == event_number]
     
-    neutrino_pdgc = truth_info['nu_pdgc'][0]
-    neutrino_energy = truth_info['nu_E'][0]
-    target_pdgc = truth_info['target_pdgc'][0]
-    event_number = truth_info['fEvent'][0]
-    vx = truth_info['vertex_x']
-    vy = truth_info['vertex_y']
-    vz = truth_info['vertex_z']
-    is_cc = bool(truth_info['isCC'][0])
+    neutrino_pdgc = event['nu_pdgc']
+    neutrino_energy = event['nu_E']
+    target_pdgc = event['target_pdgc']
+    event_number = event['fEvent']
+    vx = event['vertex_x']
+    vy = event['vertex_y']
+    vz = event['vertex_z']
+    is_cc = bool(event['isCC'])
     is_cc_label = "CC" if is_cc else "NC"
     
     ax[0].scatter(vz, vy, color="black", marker='x', s=1.5, label="primary vertex", zorder=100)
     ax[1].scatter(vx, vy, color="black", marker='x', s=1.5, label="primary vertex", zorder=100)
     
-    for s, station in enumerate(hits):
-        
-        kinematics = station.arrays(station.keys(), library="ak", cut=f"(fEvent == {event_number}) & (z > 0)")
-        
-        # print(kinematics)
-        
-        marker_size = 1
-        alpha = 1
-        
-        electrons = kinematics[np.where(np.abs(kinematics['pdgc']) == 11)]
-        muons = kinematics[np.where(np.abs(kinematics['pdgc']) == 13)]
-        taus = kinematics[np.where(np.abs(kinematics['pdgc']) == 15)]
-        
-        gluons = kinematics[np.where(np.abs(kinematics['pdgc']) == 21)]
-        photons = kinematics[np.where(np.abs(kinematics['pdgc']) == 22)]
-        charged_hadrons = kinematics[np.where(np.abs(kinematics['pdgc']) > 37)]
-        neutral_hadrons = kinematics[np.where(np.abs(kinematics['pdgc']) > 37)]
-        charged_hadrons = kinematics[np.where(get_charge_from_pdgc(kinematics['pdgc']) != 0)]
-        neutral_hadrons = kinematics[np.where(get_charge_from_pdgc(kinematics['pdgc']) == 0)]
-        
-        # scatter_on_ax(ax[0], neutral_hadrons, "z", "y", "neutral hadrons", 'grey', alpha=0.5, marker_size=marker_size)
-        scatter_on_ax(ax[0], charged_hadrons, "z", "y", "charged hadrons", 'forestgreen', alpha=alpha, marker_size=marker_size)
-        # scatter_on_ax(ax[0], photons, "z", "y", r"$\gamma$", 'yellow', alpha=0.5, marker_size=marker_size)
-        # scatter_on_ax(ax[0], gluons, "z", "y", r"$g$", 'orange', alpha=0.5, marker_size=marker_size)
-        scatter_on_ax(ax[0], electrons, "z", "y", r"$e^\pm$", 'lightblue', alpha=alpha, marker_size=marker_size)
-        scatter_on_ax(ax[0], muons, "z", "y", r"$\mu^\pm$", 'tomato', alpha=alpha, marker_size=marker_size)
-        scatter_on_ax(ax[0], taus, "z", "y", r"$\tau^\pm$", 'purple', alpha=alpha, marker_size=marker_size)
-        
-        # scatter_on_ax(ax[0], neutral_hadrons, "x", "y", "neutral hadrons", 'grey', alpha=0.5, marker_size=marker_size)
-        scatter_on_ax(ax[1], charged_hadrons, "x", "y", "charged hadrons", 'forestgreen', alpha=alpha, marker_size=marker_size)
-        # scatter_on_ax(ax[0], photons, "x", "y", r"$\gamma$", 'yellow', alpha=0.5, marker_size=marker_size)
-        # scatter_on_ax(ax[0], gluons, "x", "y", r"$g$", 'orange', alpha=0.5, marker_size=marker_size)
-        scatter_on_ax(ax[1], electrons, "x", "y", r"$e^\pm$", 'lightblue', alpha=alpha, marker_size=marker_size)
-        scatter_on_ax(ax[1], muons, "x", "y", r"$\mu^\pm$", 'tomato', alpha=alpha, marker_size=marker_size)
-        scatter_on_ax(ax[1], taus, "x", "y", r"$\tau^\pm$", 'purple', alpha=alpha, marker_size=marker_size)
-        
+    marker_size = 1
+    alpha = 1
+    
+    # for p in event['pdgc']:
+    #     print(p)
+
+    muons = get_xyx(event, np.abs(event['pdgc']) == 13)
+    electrons = get_xyx(event, np.abs(event['pdgc']) == 11)
+    taus =  get_xyx(event, np.abs(event['pdgc']) == 15)
+    
+    # gluons = event[np.where(np.abs(event['pdgc']) == 21)]
+    # photons = event[np.where(np.abs(event['pdgc']) == 22)]
+    charged_hadrons = get_xyx(event, (np.abs(event['pdgc']) > 37) & (get_charge_from_pdgc(event['pdgc']) != 0))
+    # neutral_hadrons = event[np.where(np.abs(event['pdgc']) > 37)]
+    # charged_hadrons = event[np.where(get_charge_from_pdgc(event['pdgc']) != 0)]
+    # neutral_hadrons = event[np.where(get_charge_from_pdgc(event['pdgc']) == 0)]
+    
+    # scatter_on_ax(ax[0], neutral_hadrons, "z", "y", "neutral hadrons", 'grey', alpha=0.5, marker_size=marker_size)
+    scatter_on_ax(ax[0], charged_hadrons, "z", "y", "charged hadrons", 'forestgreen', alpha=alpha, marker_size=marker_size)
+    # scatter_on_ax(ax[0], photons, "z", "y", r"$\gamma$", 'yellow', alpha=0.5, marker_size=marker_size)
+    # scatter_on_ax(ax[0], gluons, "z", "y", r"$g$", 'orange', alpha=0.5, marker_size=marker_size)
+    scatter_on_ax(ax[0], electrons, "z", "y", r"$e^\pm$", 'lightblue', alpha=alpha, marker_size=marker_size)
+    scatter_on_ax(ax[0], muons, "z", "y", r"$\mu^\pm$", 'tomato', alpha=alpha, marker_size=marker_size)
+    scatter_on_ax(ax[0], taus, "z", "y", r"$\tau^\pm$", 'purple', alpha=alpha, marker_size=marker_size)
+    
+    # scatter_on_ax(ax[0], neutral_hadrons, "x", "y", "neutral hadrons", 'grey', alpha=0.5, marker_size=marker_size)
+    scatter_on_ax(ax[1], charged_hadrons, "x", "y", "charged hadrons", 'forestgreen', alpha=alpha, marker_size=marker_size)
+    # scatter_on_ax(ax[0], photons, "x", "y", r"$\gamma$", 'yellow', alpha=0.5, marker_size=marker_size)
+    # scatter_on_ax(ax[0], gluons, "x", "y", r"$g$", 'orange', alpha=0.5, marker_size=marker_size)
+    scatter_on_ax(ax[1], electrons, "x", "y", r"$e^\pm$", 'lightblue', alpha=alpha, marker_size=marker_size)
+    scatter_on_ax(ax[1], muons, "x", "y", r"$\mu^\pm$", 'tomato', alpha=alpha, marker_size=marker_size)
+    scatter_on_ax(ax[1], taus, "x", "y", r"$\tau^\pm$", 'purple', alpha=alpha, marker_size=marker_size)
+    
     handles, labels = plt.gca().get_legend_handles_labels()
     by_label = dict(zip(labels, handles))
     
