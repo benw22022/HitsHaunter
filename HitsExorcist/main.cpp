@@ -41,37 +41,33 @@ void deleteElementsByIndices(std::vector<Hit>& vec, const std::vector<int>& indi
 
 int main(int argc, char* argv[]) {
     // Parse the command-line arguments
-    // std::unordered_map<std::string, std::string> args = parseArgs(argc, argv);
+    std::unordered_map<std::string, std::string> args = parseArgs(argc, argv);
 
-    // // Access and print the arguments
-    // for (const auto& [key, value] : args) {
-    //     std::cout << "Argument: --" << key << ", Value: " << value << std::endl;
-    // }
+    // Access and print the arguments
+    for (const auto& [key, value] : args) {
+        std::cout << "Argument: --" << key << ", Value: " << value << std::endl;
+    }
 
-    // std::string inputFile;
-    // std::string outputFile;
-    // if (args.find("input") != args.end()) {
-    //     inputFile = args["input"];
-    // }
-    // else
-    // {
-    //     throw std::invalid_argument("ERROR: You must give an input file");
-    // }
+    std::string inputFile;
+    std::string outputFile;
+    if (args.find("input") != args.end()) {
+        inputFile = args["input"];
+    }
+    else
+    {
+        throw std::invalid_argument("ERROR: You must give an input file");
+    }
 
-    // if (args.find("output") != args.end()) {
-    //     std::string outputFile = args["output"];
-    // }
-    // else
-    // {
-    //     throw std::invalid_argument("ERROR: You must give an output file");
-    // }
+    if (args.find("output") != args.end()) {
+        std::string outputFile = args["output"];
+    }
+    else
+    {
+        throw std::invalid_argument("ERROR: You must give an output file");
+    }
 
-    // std::cout << "Opening input file: " << inputFile << std::endl;
-    // std::cout << "Creating output file: " << outputFile << std::endl;
-
-    //TODO: Don't hardcode this!
-    std::string inputFile =  "../build/test.root";
-    std::string outputFile = "test-exorcised.root";
+    std::cout << "Opening input file: " << inputFile << std::endl;
+    std::cout << "Creating output file: " << outputFile << std::endl;
 
     RootReader reader{inputFile.c_str(), "Hits"};
     RootWriter writer{outputFile.c_str(), "Hits"};
