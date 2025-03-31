@@ -7,7 +7,7 @@ RootReader::RootReader(const char* filename, const char* treename) :
     m_filename{filename}, m_treename{treename}
 {
     // Open the ROOT file 
-    m_file = TFile::Open(filename, "READ"); 
+    m_file = TFile::Open(filename, "READ");
     if (!m_file || m_file->IsZombie())
      { 
         std::cerr << "Error opening file: " << filename << std::endl; 

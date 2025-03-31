@@ -25,44 +25,39 @@ std::unordered_map<std::string, std::string> parseArgs(int argc, char* argv[]) {
 }
 
 int main(int argc, char* argv[]) {
+    
     // Parse the command-line arguments
-    // std::unordered_map<std::string, std::string> args = parseArgs(argc, argv);
+    std::unordered_map<std::string, std::string> args = parseArgs(argc, argv);
 
-    // // Access and print the arguments
-    // for (const auto& [key, value] : args) {
-    //     std::cout << "Argument: --" << key << ", Value: " << value << std::endl;
-    // }
+    // Access and print the arguments
+    for (const auto& [key, value] : args) {
+        std::cout << "Argument: --" << key << ", Value: " << value << std::endl;
+    }
 
-    // std::string inputFile;
-    // std::string outputFile;
-    // if (args.find("input") != args.end()) {
-    //     inputFile = args["input"];
-    // }
-    // else
-    // {
-    //     throw std::invalid_argument("ERROR: You must give an input file");
-    // }
+    std::string inputFile;
+    std::string outputFile;
+    if (args.find("input") != args.end()) {
+        inputFile = args["input"];
+    }
+    else
+    {
+        throw std::invalid_argument("ERROR: You must give an input file");
+    }
 
-    // if (args.find("output") != args.end()) {
-    //     std::string outputFile = args["output"];
-    // }
-    // else
-    // {
-    //     throw std::invalid_argument("ERROR: You must give an output file");
-    // }
+    if (args.find("output") != args.end()) {
+        outputFile = args["output"];
+    }
+    else
+    {
+        throw std::invalid_argument("ERROR: You must give an output file");
+    }
 
-    // std::cout << "Opening input file: " << inputFile << std::endl;
-    // std::cout << "Creating output file: " << outputFile << std::endl;
-
-    //TODO: Don't hardcode this!
-    std::string inputFile =  "FASERvSi_baseline-charmTrench-680fb.0.HITS.root";
-    std::string outputFile = "test.root";
-
+    // Create the RootReader and RootWriter objects
     RootReader reader{inputFile.c_str(), "Hits"};
     RootWriter writer{outputFile.c_str(), "Hits"};
     
     //* Initialise SCT Modules
-    double module_start_pos = 550 + 0.9/2;                // Starting z-position of SCT modules [mm]
+    double module_start_pos = 550 + 0.9/2;        // Starting z-position of SCT modules [mm]
     double module_offset = 7.98;                  // Offset between SCT modules [mm]
     std::vector<SCTModule> modules{};
     std::vector<std::pair<double, bool>> module_params{{0,false}, {M_PI/2,true}, {0, true}, {M_PI/2,true}};
@@ -86,7 +81,7 @@ int main(int argc, char* argv[]) {
 
         std::cout << event_idx << "/" << reader.get_nentries() << ": " << event << std::endl;
 
-        if (abs(event.nu_pdgc) != 16) continue;
+        // if (abs(event.nu_pdgc) != 16) continue;
 
 
         // Centre hits

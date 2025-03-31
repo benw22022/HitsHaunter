@@ -20,8 +20,8 @@ RootWriter::RootWriter(const char* filename, const char* treename) :
     m_file = TFile::Open(filename, "RECREATE"); 
     if (!m_file || m_file->IsZombie())
      { 
-        std::cerr << "Error opening file: " << filename << std::endl; 
-        throw std::invalid_argument("Error opening file: " + std::string(filename));
+        std::cerr << "Error writing to file: " << filename << std::endl; 
+        throw std::invalid_argument("Error writing to file: " + std::string(filename));
      } 
      
     // Create the TTree 
