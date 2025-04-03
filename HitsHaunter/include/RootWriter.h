@@ -18,7 +18,7 @@
 #include "RootWriter.h"
 // #include <Eigen/Dense> 
 
-
+class SCTModule;
 class RootReader;
 class Event;
 
@@ -30,6 +30,7 @@ class RootWriter {
 
         void write_event(RootReader& reader);
         void write_event(Event& event);
+        void write_space_points(const SCTModule& module);
         
     private:
 
@@ -38,6 +39,7 @@ class RootWriter {
 
         TFile* m_file;
         TTree* m_tree;
+        TTree* m_sp_tree;
 
         Long64_t m_nEntries;
         Long64_t m_currentEntry{0};
@@ -68,6 +70,20 @@ class RootWriter {
         std::vector<double>* m_hits_charge = nullptr;
         std::vector<int>*    m_hits_layernum = nullptr;
         std::vector<int>*    m_hits_counter = nullptr;
+        
+        std::vector<double>* m_true_hits_x = nullptr;
+        std::vector<double>* m_true_hits_y = nullptr;
+        std::vector<double>* m_true_hits_z = nullptr;
+        std::vector<double>* m_true_hits_E = nullptr;
+        std::vector<int>*    m_true_hits_pdgc = nullptr;
+        std::vector<double>* m_true_hits_charge = nullptr;
+        std::vector<int>*    m_true_hits_layernum = nullptr;
+        std::vector<int>*    m_true_hits_counter = nullptr;
+
+        std::vector<double>* m_sp_x = nullptr;
+        std::vector<double>* m_sp_y = nullptr;
+        std::vector<double>* m_sp_z = nullptr;
+        std::vector<double>* m_sp_layer = nullptr;
         
 };
 

@@ -57,35 +57,43 @@ int main(int argc, char* argv[]) {
     RootWriter writer{outputFile.c_str(), "Hits"};
     
     //* Initialise SCT Modules
-    double module_start_pos = 550 + 0.9/2;        // Starting z-position of SCT modules [mm]
-    double module_offset = 7.98;                  // Offset between SCT modules [mm]
+    double module_start_pos = 550 + 13.92/2;        // Starting z-position of SCT modules [mm]
+    double module_offset = 13.92 + 7.08;//7.98;     // Offset between SCT modules [mm]
     std::vector<SCTModule> modules{};
     std::vector<std::pair<double, bool>> module_params{{0,false}, {M_PI/2,true}, {0, true}, {M_PI/2,true}};
     
-    for (int i{0}; i < 132; i++)
+    for (int i{0}; i < 50; i++)
     {   
-        double rotation{0};
-        bool flip_module{false};
         int index = i % module_params.size();
         double module_zpos = module_start_pos + module_offset * i;
 
         SCTModule module{0, 0, module_zpos, i, module_params[index].first, module_params[index].second};
         modules.push_back(module);
+        // writer.write_space_points(module);
+        std::cout << "Constructed module " << i << " at z = " << module_zpos << std::endl;
     }
 
     
     //* Main event loop
     for (unsigned int event_idx{0}; event_idx < reader.get_nentries(); event_idx++)
     {       
+        // if (event_idx > 1000) break;
+
         Event event = reader.get_event(event_idx);
 
         std::cout << event_idx << "/" << reader.get_nentries() << ": " << event << std::endl;
 
         // if (abs(event.nu_pdgc) != 16) continue;
 
-
         // Centre hits
         for (auto&  hit: event.hits)
+        {
+            hit.x -= event.vertex_x;
+            hit.y -= event.vertex_y;
+            // hit.z -= event.vertex_z;
+        }
+
+        for (auto&  hit: event.true_hits)
         {
             hit.x -= event.vertex_x;
             hit.y -= event.vertex_y;
@@ -97,19 +105,20 @@ int main(int argc, char* argv[]) {
         for (const auto& module: modules)
         {
             std::vector<Hit> digit_hits = module.digitizeHits(event.hits);
-
-            if (event.event_number == 11855459)
-            {   
-                std::string figname = "11855459_hits_module_";
-                figname = figname + std::to_string(module.getLayerNum()) + ".png";
-                module.drawHitsOnModule(event.hits, 1, 1, figname);
-            }
-
+            
+            
+            // if (event_idx == 0)
+            // {   
+            //     std::string figname = "hits_module_";
+            //     figname = figname + std::to_string(module.getLayerNum()) + ".png";
+            //     module.drawHitsOnModule(event.hits, 1, 1, figname);
+            // }
 
             new_hits.insert(new_hits.end(), digit_hits.begin(), digit_hits.end());
         }
 
         new_event.hits = new_hits;
+        new_event.true_hits = event.true_hits;
         
         writer.write_event(new_event);
     }

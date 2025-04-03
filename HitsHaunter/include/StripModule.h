@@ -57,6 +57,8 @@ public:
 
     friend std::ostream& operator<<(std::ostream& os, const SCTModule& module);
 
+    std::vector<Hit> getAllSpacePoints() const;
+
     int getLayerNum() const {return m_layer;}
 
 };

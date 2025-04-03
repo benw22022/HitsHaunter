@@ -27,6 +27,7 @@ class Event {
         double cclepton_py = 0.0;
         double cclepton_pz = 0.0;
         std::vector<Hit> hits;
+        std::vector<Hit> true_hits;
 
         Event(const RootReader& reader)
         {
@@ -48,7 +49,10 @@ class Event {
             cclepton_pz = reader.m_cclepton_pz;
             
             for (unsigned int i{0}; i < reader.m_hits_x->size(); i++)
-            {
+            {   
+                //! -------------------------------------------------------------
+                // if (abs(reader.m_hits_pdgc->at(i)) != 13) continue; //! Only match muon hits    !//
+                //! -------------------------------------------------------------
                 Hit hit;
                 hit.x = reader.m_hits_x->at(i);
                 hit.y = reader.m_hits_y->at(i);
@@ -58,6 +62,7 @@ class Event {
                 hit.charge = reader.m_hits_charge->at(i);
                 hit.layer = reader.m_hits_layernum->at(i);
                 hits.push_back(hit);
+                true_hits.push_back(hit);
             }
         }
 
@@ -79,12 +84,22 @@ class Event {
             cclepton_py = other.cclepton_py;
             cclepton_pz = other.cclepton_pz;
             hits = other.hits;
+            true_hits = other.true_hits;
         }
 
         template <typename T, typename MemberType>
         std::vector<MemberType> getHitValues(MemberType Hit::* member) const {
             std::vector<MemberType> values;
             for (const auto& hit : hits) {
+                values.push_back(hit.*member);
+            }
+            return values;
+        }
+
+        template <typename T, typename MemberType>
+        std::vector<MemberType> getTrueHitValues(MemberType Hit::* member) const {
+            std::vector<MemberType> values;
+            for (const auto& hit : true_hits) {
                 values.push_back(hit.*member);
             }
             return values;

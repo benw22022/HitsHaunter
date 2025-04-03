@@ -132,56 +132,124 @@ std::tuple<std::vector<Hit>, std::set<std::pair<Vector2D, Vector2D>>, std::set<s
 
     // Loop though each pair of top and bottom hit strip edges
     for (const auto& top_strip_edge_pairs: hit_strips.first){
-    for (const auto& bottom_strip_edge_pairs: hit_strips.second){
-        bool is_valid = true;
-        
+        for (const auto& bottom_strip_edge_pairs: hit_strips.second){
+            bool is_valid = true;
+            
 
-        // Work out where all strip edges intercept
-        Vec2 intercept_11 = top_strip_edge_pairs.first.compute_intercept(bottom_strip_edge_pairs.first);
-        Vec2 intercept_12 = top_strip_edge_pairs.first.compute_intercept(bottom_strip_edge_pairs.second);
-        Vec2 intercept_21 = top_strip_edge_pairs.second.compute_intercept(bottom_strip_edge_pairs.first);
-        Vec2 intercept_22 = top_strip_edge_pairs.second.compute_intercept(bottom_strip_edge_pairs.second);
+            // Work out where all strip edges intercept
+            Vec2 intercept_11 = top_strip_edge_pairs.first.compute_intercept(bottom_strip_edge_pairs.first);
+            Vec2 intercept_12 = top_strip_edge_pairs.first.compute_intercept(bottom_strip_edge_pairs.second);
+            Vec2 intercept_21 = top_strip_edge_pairs.second.compute_intercept(bottom_strip_edge_pairs.first);
+            Vec2 intercept_22 = top_strip_edge_pairs.second.compute_intercept(bottom_strip_edge_pairs.second);
 
-        std::vector<Vec2> intercepts{intercept_11, intercept_12, intercept_21, intercept_22};
+            std::vector<Vec2> intercepts{intercept_11, intercept_12, intercept_21, intercept_22};
 
-        // Check that all intercept points lie on the module
-        for (const auto& intercept : intercepts)
-        {   
-            if (!checkHitModuleOverlap(Hit{intercept.x, intercept.y}))
+            // Check that all intercept points lie on the module
+            for (const auto& intercept : intercepts)
+            {   
+                if (!checkHitModuleOverlap(Hit{intercept.x, intercept.y}))
+                {
+                    is_valid = false;
+                }
+            }
+
+            // If all intercepts are on module then construct a space-point
+            if (is_valid)
             {
-                is_valid = false;
+                Hit sp;
+                sp.x = (intercept_11.x + intercept_12.x + intercept_21.x + intercept_22.x) / 4;
+                sp.y = (intercept_11.y + intercept_12.y + intercept_21.y + intercept_22.y) / 4;
+                sp.z = m_zpos; //! Make sure you have set the z-position of the module properly!
+                sp.layer  = m_layer;
+                sp.charge = 1;
+
+                // If space point is not already in the vector then push it back
+                auto it = std::find(space_points.begin(), space_points.end(), sp);
+                if (it == space_points.end()) 
+                {   
+                    space_points.push_back(sp);
+                }   
+                
             }
         }
-
-        // If all intercepts are on module then construct a space-point
-        if (is_valid)
-        {
-            Hit sp;
-            sp.x = (intercept_11.x + intercept_12.x + intercept_21.x + intercept_22.x) / 4;
-            sp.y = (intercept_11.y + intercept_12.y + intercept_21.y + intercept_22.y) / 4;
-            sp.z = m_zpos; //! Make sure you have set the z-position of the module properly!
-            sp.layer  = m_layer;
-            sp.charge = 1;
-
-            // If space point is not already in the vector then push it back
-            auto it = std::find(space_points.begin(), space_points.end(), sp);
-            if (it == space_points.end()) 
-            {   
-                space_points.push_back(sp);
-            }   
-            
-        }
-    }
     }
 
     return {space_points, hit_strips.first, hit_strips.second};
 }
 
+
+// * This function is used to get all space points on the module, regardless of whether they are matched to hits or not
+std::vector<Hit> SCTModule::getAllSpacePoints() const
+{
+    std::vector<Hit> space_points{};
+
+    std::pair<std::set<std::pair<Vector2D,Vector2D>>, std::set<std::pair<Vector2D,Vector2D>>> hit_strips;
+    
+    // Select all strip pairs 
+    for (unsigned int i{1}; i < m_top_strip_edges.size(); i++)
+    {
+        hit_strips.first.insert({m_top_strip_edges[i-1], m_top_strip_edges[i]});
+        hit_strips.second.insert({m_bottom_strip_edges[i-1], m_bottom_strip_edges[i]});
+    }
+
+
+    // Loop though each pair of top and bottom hit strip edges
+    for (const auto& top_strip_edge_pairs: hit_strips.first){
+        for (const auto& bottom_strip_edge_pairs: hit_strips.second){
+            bool is_valid = true;
+            
+
+            // Work out where all strip edges intercept
+            Vec2 intercept_11 = top_strip_edge_pairs.first.compute_intercept(bottom_strip_edge_pairs.first);
+            Vec2 intercept_12 = top_strip_edge_pairs.first.compute_intercept(bottom_strip_edge_pairs.second);
+            Vec2 intercept_21 = top_strip_edge_pairs.second.compute_intercept(bottom_strip_edge_pairs.first);
+            Vec2 intercept_22 = top_strip_edge_pairs.second.compute_intercept(bottom_strip_edge_pairs.second);
+
+            std::vector<Vec2> intercepts{intercept_11, intercept_12, intercept_21, intercept_22};
+
+            // Check that all intercept points lie on the module
+            for (const auto& intercept : intercepts)
+            {   
+                if (!checkHitModuleOverlap(Hit{intercept.x, intercept.y}))
+                {
+                    is_valid = false;
+                }
+            }
+
+            // If all intercepts are on module then construct a space-point
+            if (is_valid)
+            {
+                Hit sp;
+                sp.x = (intercept_11.x + intercept_12.x + intercept_21.x + intercept_22.x) / 4;
+                sp.y = (intercept_11.y + intercept_12.y + intercept_21.y + intercept_22.y) / 4;
+                sp.z = m_zpos; //! Make sure you have set the z-position of the module properly!
+                sp.layer  = m_layer;
+                sp.charge = 1;
+
+                // If space point is not already in the vector then push it back
+                auto it = std::find(space_points.begin(), space_points.end(), sp);
+                if (it == space_points.end()) 
+                {   
+                    space_points.push_back(sp);
+                }   
+                
+            }
+        }
+    }
+
+    return space_points;
+}
+
+
 void SCTModule::matchSpacePointsToHits(const std::vector<Hit>& hits, std::vector<Hit>& space_points) const
 {   
     // Loop through all hits and find the nearest space point
     for (const auto& hit: hits)
-    {
+    {   
+        //! -------------------------------------------------------------
+        // if (abs(hit.pdgc) != 13) continue; //! Only match muon hits    !//
+        //! -------------------------------------------------------------
+
         double smallest_distance{10e10};
         
         if (hit.layer != m_layer) continue;

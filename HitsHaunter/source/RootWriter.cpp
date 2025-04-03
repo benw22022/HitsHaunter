@@ -7,6 +7,7 @@
 #include "RootReader.h"
 #include "RootWriter.h"
 #include "Event.h"
+#include "StripModule.h"
 // #include <Eigen/Dense>
 // #include <Math/Minimizer.h>
 // #include <Math/Functor.h>
@@ -26,6 +27,7 @@ RootWriter::RootWriter(const char* filename, const char* treename) :
      
     // Create the TTree 
     m_tree = new TTree(treename, "Hits tree decorated with clusters");
+    m_sp_tree = new TTree("spacePoints", "All space points");
 
     // Get number of entries
     m_nEntries = m_tree->GetEntries();
@@ -55,12 +57,26 @@ RootWriter::RootWriter(const char* filename, const char* treename) :
     m_tree->Branch("pdgc",          &m_hits_pdgc); 
     m_tree->Branch("charge",        &m_hits_charge); 
     m_tree->Branch("layer",         &m_hits_layernum);
-    m_tree->Branch("counter",       &m_hits_counter); 
+    m_tree->Branch("counter",       &m_hits_counter);
+    m_tree->Branch("true_x",             &m_true_hits_x); 
+    m_tree->Branch("true_y",             &m_true_hits_y); 
+    m_tree->Branch("true_z",             &m_true_hits_z); 
+    m_tree->Branch("true_E",             &m_true_hits_E); 
+    m_tree->Branch("true_pdgc",          &m_true_hits_pdgc); 
+    m_tree->Branch("true_charge",        &m_true_hits_charge); 
+    m_tree->Branch("true_layer",         &m_true_hits_layernum);
+    m_tree->Branch("true_counter",       &m_true_hits_counter); 
+
+    m_sp_tree->Branch("x",             &m_sp_x);
+    m_sp_tree->Branch("y",             &m_sp_y);
+    m_sp_tree->Branch("z",             &m_sp_z);
+    m_sp_tree->Branch("layer",         &m_sp_layer);
 }
 
 RootWriter::~RootWriter()
 {   
     m_tree->Write();
+    m_sp_tree->Write();
     m_file->Close();
 }
 
@@ -77,6 +93,15 @@ void RootWriter::write_event(RootReader& reader)
     m_hits_charge->clear();
     m_hits_layernum->clear();
     m_hits_counter->clear();
+
+    m_true_hits_x->clear();
+    m_true_hits_y->clear();
+    m_true_hits_z->clear();
+    m_true_hits_E->clear();
+    m_true_hits_pdgc->clear();
+    m_true_hits_charge->clear();
+    m_true_hits_layernum->clear();
+    m_true_hits_counter->clear();
     
 
     // Move data from reader into writer
@@ -135,6 +160,15 @@ void RootWriter::write_event(Event& event)
     m_hits_charge->clear();
     m_hits_layernum->clear();
     m_hits_counter->clear();
+
+    m_true_hits_x->clear();
+    m_true_hits_y->clear();
+    m_true_hits_z->clear();
+    m_true_hits_E->clear();
+    m_true_hits_pdgc->clear();
+    m_true_hits_charge->clear();
+    m_true_hits_layernum->clear();
+    m_true_hits_counter->clear();
     
 
     // Move data from reader into writer
@@ -163,6 +197,38 @@ void RootWriter::write_event(Event& event)
     *m_hits_layernum = std::move(event.getHitValues<int>(&Hit::layer));
     *m_hits_counter  = std::move(event.getHitValues<int>(&Hit::counter));
 
+    *m_true_hits_x        = std::move(event.getTrueHitValues<double>(&Hit::x));
+    *m_true_hits_y        = std::move(event.getTrueHitValues<double>(&Hit::y));
+    *m_true_hits_z        = std::move(event.getTrueHitValues<double>(&Hit::z));
+    *m_true_hits_E        = std::move(event.getTrueHitValues<double>(&Hit::energy));
+    *m_true_hits_pdgc     = std::move(event.getTrueHitValues<int>(&Hit::pdgc));
+    *m_true_hits_charge   = std::move(event.getTrueHitValues<double>(&Hit::charge));
+    *m_true_hits_layernum = std::move(event.getTrueHitValues<int>(&Hit::layer));
+    *m_true_hits_counter  = std::move(event.getTrueHitValues<int>(&Hit::counter));
+
+    m_tree->GetCurrentFile()->cd();
     m_tree->Fill();
 }
 
+void RootWriter::write_space_points(const SCTModule& module)
+{
+    // Clear these vectors - else they'll just keep growing
+    m_sp_x->clear();
+    m_sp_y->clear();
+    m_sp_z->clear();
+    m_sp_layer->clear();
+
+    std::vector<Hit> space_points = module.getAllSpacePoints();
+    
+    for (const auto& sp: space_points)
+    {   
+        // std::cout << "Space point " << sp << std::endl;
+        m_sp_x->push_back(sp.x);
+        m_sp_y->push_back(sp.y);
+        m_sp_z->push_back(sp.z);
+        m_sp_layer->push_back(module.getLayerNum());
+    }
+    
+    m_sp_tree->GetCurrentFile()->cd();
+    m_sp_tree->Fill();
+}
