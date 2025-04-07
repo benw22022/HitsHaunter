@@ -60,24 +60,81 @@ int main(int argc, char* argv[]) {
     double module_start_pos = 550 + 13.92/2;        // Starting z-position of SCT modules [mm]
     double module_offset = 13.92 + 7.08;//7.98;     // Offset between SCT modules [mm]
     std::vector<SCTModule> modules{};
+    double width=63.56; 
+    double length=128.05;
+    int nlayers = 50;
     std::vector<std::pair<double, bool>> module_params{{0,false}, {M_PI/2,true}, {0, true}, {M_PI/2,true}};
+    // std::vector<std::pair<double, double>> module_offsets{{0.5, 0.5}, {0.5, 1.5}, {0.5, 2.5}, {0.5, 3.5},
+    //                                                       {0.5, -0.5}, {0.5, -1.5}, {0.5,-2.5}, {0.5, -3.5}, 
+    //                                                       {-0.5, 0.5}, {-0.5, 1.5}, {-0.5, 2.5}, {-0.5, 3.5},
+    //                                                       {-0.5, -0.5}, {-0.5, -1.5}, {-0.5,-2.5}, {-0.5, -3.5}};
     
-    for (int i{0}; i < 50; i++)
+    for (int i{0}; i < nlayers; i++)
     {   
         int index = i % module_params.size();
         double module_zpos = module_start_pos + module_offset * i;
+        double rot = module_params[index].first;
+        bool flip = module_params[index].second;
+       
+        //* Vertical modules 4 x 4 array
+        if (rot == 0)
+        {
+            modules.push_back(SCTModule(0.5*width, 0.5*length, module_zpos, i, module_params[index].first, module_params[index].second));
+            modules.push_back(SCTModule(0.5*width, 1.5*length, module_zpos, i, module_params[index].first, module_params[index].second));
 
-        SCTModule module{0, 0, module_zpos, i, module_params[index].first, module_params[index].second};
-        modules.push_back(module);
-        // writer.write_space_points(module);
-        std::cout << "Constructed module " << i << " at z = " << module_zpos << std::endl;
+            modules.push_back(SCTModule(0.5*width, -0.5*length, module_zpos, i, module_params[index].first, module_params[index].second));
+            modules.push_back(SCTModule(0.5*width, -1.5*length, module_zpos, i, module_params[index].first, module_params[index].second));
+
+            modules.push_back(SCTModule(-0.5*width, 0.5*length, module_zpos, i, module_params[index].first, module_params[index].second));
+            modules.push_back(SCTModule(-0.5*width, 1.5*length, module_zpos, i, module_params[index].first, module_params[index].second));
+
+            modules.push_back(SCTModule(-0.5*width, -0.5*length, module_zpos, i, module_params[index].first, module_params[index].second));
+            modules.push_back(SCTModule(-0.5*width, -1.5*length, module_zpos, i, module_params[index].first, module_params[index].second));
+
+            modules.push_back(SCTModule(1.5*width, 0.5*length, module_zpos, i, module_params[index].first, module_params[index].second));
+            modules.push_back(SCTModule(1.5*width, 1.5*length, module_zpos, i, module_params[index].first, module_params[index].second));
+
+            modules.push_back(SCTModule(1.5*width, -0.5*length, module_zpos, i, module_params[index].first, module_params[index].second));
+            modules.push_back(SCTModule(1.5*width, -1.5*length, module_zpos, i, module_params[index].first, module_params[index].second));
+
+            modules.push_back(SCTModule(-1.5*width, 0.5*length, module_zpos, i, module_params[index].first, module_params[index].second));
+            modules.push_back(SCTModule(-1.5*width, 1.5*length, module_zpos, i, module_params[index].first, module_params[index].second));
+
+            modules.push_back(SCTModule(-1.5*width, -0.5*length, module_zpos, i, module_params[index].first, module_params[index].second));
+            modules.push_back(SCTModule(-1.5*width, -1.5*length, module_zpos, i, module_params[index].first, module_params[index].second));            
+        }
+        //* Horizontal modules 2 x 8 array
+        if (rot != 0){           
+
+            modules.push_back(SCTModule(0.5*length, 0.5*width, module_zpos, i, module_params[index].first, module_params[index].second));
+            modules.push_back(SCTModule(0.5*length, 1.5*width, module_zpos, i, module_params[index].first, module_params[index].second));
+            modules.push_back(SCTModule(0.5*length, 2.5*width, module_zpos, i, module_params[index].first, module_params[index].second));
+            modules.push_back(SCTModule(0.5*length, 3.5*width, module_zpos, i, module_params[index].first, module_params[index].second));
+            
+            modules.push_back(SCTModule(-0.5*length, 0.5*width, module_zpos, i, module_params[index].first, module_params[index].second));
+            modules.push_back(SCTModule(-0.5*length, 1.5*width, module_zpos, i, module_params[index].first, module_params[index].second));
+            modules.push_back(SCTModule(-0.5*length, 2.5*width, module_zpos, i, module_params[index].first, module_params[index].second));
+            modules.push_back(SCTModule(-0.5*length, 3.5*width, module_zpos, i, module_params[index].first, module_params[index].second));
+
+            modules.push_back(SCTModule(0.5*length, -0.5*width, module_zpos, i, module_params[index].first, module_params[index].second));
+            modules.push_back(SCTModule(0.5*length, -1.5*width, module_zpos, i, module_params[index].first, module_params[index].second));
+            modules.push_back(SCTModule(0.5*length, -2.5*width, module_zpos, i, module_params[index].first, module_params[index].second));
+            modules.push_back(SCTModule(0.5*length, -3.5*width, module_zpos, i, module_params[index].first, module_params[index].second));
+            
+            modules.push_back(SCTModule(-0.5*length, -0.5*width, module_zpos, i, module_params[index].first, module_params[index].second));
+            modules.push_back(SCTModule(-0.5*length, -1.5*width, module_zpos, i, module_params[index].first, module_params[index].second));
+            modules.push_back(SCTModule(-0.5*length, -2.5*width, module_zpos, i, module_params[index].first, module_params[index].second));
+            modules.push_back(SCTModule(-0.5*length, -3.5*width, module_zpos, i, module_params[index].first, module_params[index].second));
+        }
+
+
     }
 
     
     //* Main event loop
     for (unsigned int event_idx{0}; event_idx < reader.get_nentries(); event_idx++)
     {       
-        // if (event_idx > 1000) break;
+        if (event_idx > 100) break;
 
         Event event = reader.get_event(event_idx);
 
@@ -86,34 +143,25 @@ int main(int argc, char* argv[]) {
         // if (abs(event.nu_pdgc) != 16) continue;
 
         // Centre hits
-        for (auto&  hit: event.hits)
-        {
-            hit.x -= event.vertex_x;
-            hit.y -= event.vertex_y;
-            // hit.z -= event.vertex_z;
-        }
+        // for (auto&  hit: event.hits)
+        // {
+        //     hit.x -= event.vertex_x;
+        //     hit.y -= event.vertex_y;
+        //     // hit.z -= event.vertex_z;
+        // }
 
-        for (auto&  hit: event.true_hits)
-        {
-            hit.x -= event.vertex_x;
-            hit.y -= event.vertex_y;
-            // hit.z -= event.vertex_z;
-        }
+        // for (auto&  hit: event.true_hits)
+        // {
+        //     hit.x -= event.vertex_x;
+        //     hit.y -= event.vertex_y;
+        //     // hit.z -= event.vertex_z;
+        // }
 
         Event new_event = event;
         std::vector<Hit> new_hits{};  //TODO: Write out truth and digitized hits to seperate branches
         for (const auto& module: modules)
         {
             std::vector<Hit> digit_hits = module.digitizeHits(event.hits);
-            
-            
-            // if (event_idx == 0)
-            // {   
-            //     std::string figname = "hits_module_";
-            //     figname = figname + std::to_string(module.getLayerNum()) + ".png";
-            //     module.drawHitsOnModule(event.hits, 1, 1, figname);
-            // }
-
             new_hits.insert(new_hits.end(), digit_hits.begin(), digit_hits.end());
         }
 

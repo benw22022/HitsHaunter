@@ -50,9 +50,10 @@ class Event {
             
             for (unsigned int i{0}; i < reader.m_hits_x->size(); i++)
             {   
-                //! -------------------------------------------------------------
+                // ! -------------------------------------------------------------
                 // if (abs(reader.m_hits_pdgc->at(i)) != 13) continue; //! Only match muon hits    !//
-                //! -------------------------------------------------------------
+                // ! -------------------------------------------------------------
+                if (abs(reader.m_hits_charge->at(i)) == 0) continue; //! Only match muon hits    !//
                 Hit hit;
                 hit.x = reader.m_hits_x->at(i);
                 hit.y = reader.m_hits_y->at(i);
