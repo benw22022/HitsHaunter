@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.10)
 project(HitsHaunter VERSION 1.0)
 
 # Set C++ standard
-set(CMAKE_CXX_STANDARD 17) 
+set(CMAKE_CXX_STANDARD 20) 
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 # Find the ROOT package
@@ -22,4 +22,8 @@ file(GLOB headers ${PROJECT_SOURCE_DIR}/include/*.h)
 add_executable(exorcist main.cpp ${sources} ${headers})
 
 # Link the ROOT libraries to executable
-target_link_libraries(exorcist ${ROOT_LIBRARIES})
+if(DEFINED ENV{CONDA_PREFIX})
+    target_link_libraries(exorcist "$ENV{CONDA_PREFIX}/lib/libstdc++.so" pthread ${ROOT_LIBRARIES})
+else()
+    target_link_libraries(exorcist ${ROOT_LIBRARIES})
+endif()
