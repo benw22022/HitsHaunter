@@ -75,8 +75,8 @@ if __name__ == "__main__":
     parser.add_argument("--interaction", "-c", nargs="+", help='Interaction type', type=str, default=[], choices=["CCe", "CCmu", "CCtau", "NC"])
     parser.add_argument("--has_hit", "-p", nargs="+", help='Select events only containing a hit with pdg code', type=int, default=[])
     parser.add_argument("--keep_hit", "-k", nargs="+", help='Select events only containing a hit with pdg code', type=int, default=[])
-    parser.add_argument("--start", "s", help='Keep events from this index onwards', type=int, default=0)
-    parser.add_argument("--stop", "p", help='Keep events with this index and lower', type=int, default=0)
+    parser.add_argument("--start", "-s", help='Keep events from this index onwards', type=int, default=0)
+    parser.add_argument("--stop", "-p", help='Keep events with this index and lower', type=int, default=0)
     args = parser.parse_args()
     
     main(args)
