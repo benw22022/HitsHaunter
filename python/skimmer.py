@@ -1,3 +1,11 @@
+"""
+Hits file skimmer
+====================
+This script filters a ROOT file based on specified criteria, such as interaction type and particle PDG codes.
+! NOTE !: This script has not been fully tested
+"""
+
+
 import ROOT
 import os
 import argparse
@@ -52,9 +60,8 @@ def main(args):
         df = df.Filter(combined_filter)
 
     # Configure number of events
-    if args.nevents > 0:
-        print(f"Keeping only the first {args.nevents} events")
-        df = df.Range(args.nevents)
+    print(f"Keeping events with indices in the range {args.start} - {args.stop}")
+    df = df.Range(args.start, args.stop)
     
     # Save the filtered data
     df.Snapshot("Hits", args.output)
@@ -68,7 +75,8 @@ if __name__ == "__main__":
     parser.add_argument("--interaction", "-c", nargs="+", help='Interaction type', type=str, default=[], choices=["CCe", "CCmu", "CCtau", "NC"])
     parser.add_argument("--has_hit", "-p", nargs="+", help='Select events only containing a hit with pdg code', type=int, default=[])
     parser.add_argument("--keep_hit", "-k", nargs="+", help='Select events only containing a hit with pdg code', type=int, default=[])
-    parser.add_argument("--nevents", "-n", help='Keep only the 1st n events', type=int, default=0)
+    parser.add_argument("--start", "s", help='Keep events from this index onwards', type=int, default=0)
+    parser.add_argument("--stop", "p", help='Keep events with this index and lower', type=int, default=0)
     args = parser.parse_args()
     
     main(args)
