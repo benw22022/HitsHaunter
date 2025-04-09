@@ -46,16 +46,18 @@ def main(args):
             print("Selecting NC events")
 
     # Combine all filters into a single string
-    combined_filter = " && ".join(filters)
-    skimmed_df = df.Filter(combined_filter)
+    if len(filters) == 1: df = df.Filter(filters[0])
+    elif len(filters) > 1:
+        combined_filter = " && ".join(filters)
+        df = df.Filter(combined_filter)
 
     # Configure number of events
     if args.nevents > 0:
         print(f"Keeping only the first {args.nevents} events")
-        skimmed_df = skimmed_df.Range(args.nevents)
+        df = df.Range(args.nevents)
     
     # Save the filtered data
-    skimmed_df.Snapshot("Hits", args.output)
+    df.Snapshot("Hits", args.output)
     
 if __name__ == "__main__":
     
