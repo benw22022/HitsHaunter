@@ -3,9 +3,6 @@
 #include <unordered_map>
 #include <vector>
 
-#include "RootReader.h"
-#include "RootWriter.h"
-#include "Event.h"
 #include "Hit.h"
 #include "StripModule.h"
 

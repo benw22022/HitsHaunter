@@ -85,7 +85,7 @@ std::set<std::pair<Vector2D,Vector2D>> SCTModule::getHitStripsOneLayer(const std
     // Loop through hits
     for (const auto& hit : hits)
     {
-        // Check that hit actulaly lands on the module
+        // Check that hit actulaly lands on the module and is charged
         if (hit.layer != m_layer) continue;
         if (hit.charge == 0.) continue;
         if (!checkHitModuleOverlap(hit)){
