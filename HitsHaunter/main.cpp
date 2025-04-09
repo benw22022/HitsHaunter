@@ -186,7 +186,7 @@ int main(int argc, char* argv[]) {
     resultDf = resultDf.Define("true_layer", "layer");
     
 
-    resultDf = resultDf.Define("interaction_type", [](bool isCC, int nu_pdgc) {
+    resultDf = resultDf.Define("interaction_type", [](int isCC, int nu_pdgc) {
         
         std::vector<int> interaction_type{0, 0, 0, 0};
         
