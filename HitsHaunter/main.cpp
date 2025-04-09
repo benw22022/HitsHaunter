@@ -184,6 +184,28 @@ int main(int argc, char* argv[]) {
     resultDf = resultDf.Define("true_pdgc", "pdgc");
     resultDf = resultDf.Define("true_charge", "charge");
     resultDf = resultDf.Define("true_layer", "layer");
+    
+
+    resultDf = resultDf.Define("interaction_type", [](bool isCC, int nu_pdgc) {
+        
+        std::vector<int> interaction_type{0, 0, 0, 0};
+        
+        if(isCC && nu_pdgc == 12) {
+            interaction_type[0] = 1; // CC electron
+        }
+        else if(isCC && nu_pdgc == 14) {
+            interaction_type[1] = 1; // CC muon
+        }
+        else if(isCC && nu_pdgc == 16) {
+            interaction_type[2] = 1; // CC tau
+        }
+        else if(!isCC) {
+            interaction_type[3] = 1; // NC 
+        }
+        return interaction_type;
+    }, {"isCC", "nu_pdgc"});
+
+
 
     resultDf = resultDf.Define("digit_x", [](const std::vector<Hit>& hits) {
         std::vector<double> x;
