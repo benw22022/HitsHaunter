@@ -48,7 +48,7 @@ if __name__ == "__main__":
     parser.add_argument("--input", "-i", help='input file', type=str)
     parser.add_argument("--output", "-o", help='output file', type=str)
     parser.add_argument("--tree", "-t", help='tree name', type=str, default="Hits")
-    parser.add_argument("--interaction", "-c", nargs="+", help='Interaction type', type=str, default=[], options=["CCe", "CCmu", "CCtau", "NC"])
+    parser.add_argument("--interaction", "-c", nargs="+", help='Interaction type', type=str, default=[], choices=["CCe", "CCmu", "CCtau", "NC"])
     parser.add_argument("--has_hit", "-p", nargs="+", help='Select events only containing a hit with pdg code', type=int, default=[])
     parser.add_argument("--keep_hit", "-k", nargs="+", help='Select events only containing a hit with pdg code', type=int, default=[])
     parser.add_argument("--nevents", "-n", help='Keep only the 1st n events', type=int, default=0)
