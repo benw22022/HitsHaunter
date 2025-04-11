@@ -190,13 +190,13 @@ int main(int argc, char* argv[]) {
         
         std::vector<int> interaction_type{0, 0, 0, 0};
         
-        if(isCC && nu_pdgc == 12) {
+        if(isCC && abs(nu_pdgc) == 12) {
             interaction_type[0] = 1; // CC electron
         }
-        else if(isCC && nu_pdgc == 14) {
+        else if(isCC && abs(nu_pdgc) == 14) {
             interaction_type[1] = 1; // CC muon
         }
-        else if(isCC && nu_pdgc == 16) {
+        else if(isCC && (nu_pdgc) == 16) {
             interaction_type[2] = 1; // CC tau
         }
         else if(!isCC) {
