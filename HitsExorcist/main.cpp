@@ -122,47 +122,9 @@ int main(int argc, char* argv[]) {
         std::cout << "Removing " << hit_indices_to_erase.size() << " hits" << " of which " << n_wrongly_tagged_hits << " were wrongly classified as ghosts" << std::endl;
         double misid_eff = static_cast<double>(n_wrongly_tagged_hits) / static_cast<double>(hit_indices_to_erase.size());
         std::cout << "Mis-ID efficiency is " << misid_eff  * 100 << " %" << std::endl;
-
-        // std::vector<Hit> new_hits{};
-        // int n_kept{0};
-        // int n_removed{0};
-        // for (unsigned int i{0}; i < event.hits.size(); i++)
-        // {   
-        //     // std::cout << i << " / " << event.hits.size() << std::endl;
-        //     bool remove_this{false};
-        //     for (const int& index : hit_indices_to_erase)
-        //     {   
-        //         // std::cout << i << " ----  " << index << " / " << hit_indices_to_erase.size() << std::endl;
-        //         if (i == index)
-        //         {   
-
-        //             n_removed++;
-        //             remove_this = true;
-        //             break;
-        //         }
-        //     }
-
-        //     if (!remove_this){
-        //         n_kept++;
-                
-                
-        //         // if (abs(new_event.hits[i].x) > 30)
-        //         // {
-        //         //     std::cout << "Keeping " << new_event.hits[i] << std::endl;    
-        //         // }
-
-        //         new_hits.emplace_back(new_event.hits[i]);
-        //     }
-        // }
-
-        // std::cout << "Removed: " << n_removed << "   Kept: " << n_kept << std::endl;
-        
-        // new_event.hits.clear();
-        // new_event.hits = new_hits;
-
         deleteElementsByIndices(new_event.hits, hit_indices_to_erase);
         
-        writer.write_event(new_event);
+        writer.write_event(new_event, hit_indices_to_erase.size() - n_wrongly_tagged_hits, n_wrongly_tagged_hits);
         // return 0;
     }
 

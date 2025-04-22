@@ -48,6 +48,8 @@ RootWriter::RootWriter(const char* filename, const char* treename) :
     m_tree->Branch("cclepton_px",   &m_cclepton_px, "cclepton_px/D");
     m_tree->Branch("cclepton_py",   &m_cclepton_py, "cclepton_py/D");
     m_tree->Branch("cclepton_pz",   &m_cclepton_pz, "cclepton_pz/D");
+    m_tree->Branch("nCorrectlyRemovedHits", &m_cclepton_pdgc, "nCorrectlyRemovedHits/I");
+    m_tree->Branch("nIncorrectlyRemovedHits", &m_cclepton_pdgc, "nCorrectlyRemovedHits/I");
     m_tree->Branch("x",             &m_hits_x); 
     m_tree->Branch("y",             &m_hits_y); 
     m_tree->Branch("z",             &m_hits_z); 
@@ -67,7 +69,7 @@ RootWriter::~RootWriter()
 void RootWriter::write_event(RootReader& reader)
 {
     m_currentEntry++;
-
+    
     // Clear these vectors - else they'll just keep growing
     m_hits_x->clear();
     m_hits_y->clear();
@@ -78,7 +80,6 @@ void RootWriter::write_event(RootReader& reader)
     m_hits_layernum->clear();
     m_hits_counter->clear();
     
-
     // Move data from reader into writer
     m_event_number = reader.m_event_number;
     m_vertex_x = reader.m_vertex_x;    
@@ -113,18 +114,18 @@ void RootWriter::write_event(RootReader& reader)
     reader.m_hits_pdgc = nullptr;
     reader.m_hits_charge = nullptr;
     reader.m_hits_layernum = nullptr;
-
-    // sHIT HAPPENS HERE
     
-
     // std::cout << "Filling tree" << std::endl;
     m_tree->Fill();
 }
 
 
-void RootWriter::write_event(Event& event)
+void RootWriter::write_event(Event& event, int nCorrectlyRemovedHits, int nIncorrectlyRemovedHits)
 {
     m_currentEntry++;
+
+    m_nCorrectlyRemovedHits = nCorrectlyRemovedHits;
+    m_nIncorrectlyRemovedHits = nIncorrectlyRemovedHits;
 
     // Clear these vectors - else they'll just keep growing
     m_hits_x->clear();

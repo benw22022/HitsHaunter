@@ -29,7 +29,7 @@ class RootWriter {
         ~RootWriter();
 
         void write_event(RootReader& reader);
-        void write_event(Event& event);
+        void write_event(Event& event, int nCorrectlyRemovedHits, int nIncorrectlyRemovedHits);
         
     private:
 
@@ -60,6 +60,8 @@ class RootWriter {
         double m_cclepton_px = 0.0;
         double m_cclepton_py = 0.0;
         double m_cclepton_pz = 0.0;
+        int   m_nCorrectlyRemovedHits = 0;
+        int   m_nIncorrectlyRemovedHits = 0;
         std::vector<double>* m_hits_x = nullptr;
         std::vector<double>* m_hits_y = nullptr;
         std::vector<double>* m_hits_z = nullptr;
